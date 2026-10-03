@@ -1,0 +1,34 @@
+name: "ghav human: CI/CD Pipeline"
+"on":
+  push:
+    branches:
+      - ghav/dev/7
+    paths:
+      - .ghav/human
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+  pull-requests: write
+env:
+  NX_CLOUD_ACCESS_TOKEN: ${{ '' }}
+  NX_NO_CLOUD: "true"
+jobs:
+  ci:
+    name: CI Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set Nx SHAs
+        uses: nrwl/nx-set-shas@v4
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+      - name: Run Affected
+        run: npx nx affected -t lint test build --parallel=3
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
+      - name: Validate Skills Structure
+        uses: ./.github/actions/validate-skills
